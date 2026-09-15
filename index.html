@@ -18,7 +18,7 @@ button:disabled{opacity:.4}.muted{color:#6b7280}.ok{color:#047857}.bad{color:#b9
 <body>
 <div class="wrap">
 <h1>Research Data Admin</h1>
-<p class="muted">อ่านข้อมูลจาก Firebase แบบ read-only และ Export เฉพาะ BA01–BA41</p>
+<p class="muted">อ่านข้อมูลจาก Firebase แบบ read-only | โหมดจริง BA01–BA41 | โหมดทดสอบ BA99</p>
 
 <div class="card">
 <h2>Admin Login</h2>
@@ -33,10 +33,12 @@ button:disabled{opacity:.4}.muted{color:#6b7280}.ok{color:#047857}.bad{color:#b9
 
 <div class="card">
 <div class="row">
-<button id="loadBtn" disabled>โหลดข้อมูล BA01–BA41</button>
+<button id="loadBtn" disabled>โหลดข้อมูลจริง BA01–BA41</button>
+<button id="testBtn" disabled style="background:#7c3aed">โหลดข้อมูลทดสอบ BA99</button>
 <button id="summaryBtn" disabled>Export Summary CSV</button>
 <button id="moodBtn" disabled>Export Mood Logs CSV</button>
 </div>
+<p id="modeMsg" class="muted">โหมดปัจจุบัน: ยังไม่ได้โหลดข้อมูล</p>
 <p id="status" class="muted">รอ Admin Login</p>
 </div>
 
@@ -76,7 +78,7 @@ const db = getFirestore(app);
 await setPersistence(auth, browserSessionPersistence);
 
 const $ = x => document.getElementById(x);
-let summaryRows = [], moodRows = [];
+let summaryRows = [], moodRows = [], currentMode = "";
 
 function safeJSON(v){
   if(v==null) return null;
@@ -93,11 +95,12 @@ function metricBlock(r,k){
   if(!b||typeof b!=="object") return {total:"",mean:""};
   return {total:pick(b,["total","score","sum","totalScore"]),mean:pick(b,["mean","average","avg","meanScore"])};
 }
-function inRange(code){
+function inRealRange(code){
   const m=/^BA(\d{2})$/i.exec(String(code||"").trim());
   if(!m) return false;
   const n=Number(m[1]); return n>=1 && n<=41;
 }
+function isTestCode(code){ return String(code||"").trim().toUpperCase()==="BA99"; }
 function csvEscape(v){let s=v==null?"":String(v);if(/[",\n\r]/.test(s))s='"'+s.replaceAll('"','""')+'"';return s}
 function downloadCSV(name,rows){
   if(!rows.length){alert("ยังไม่มีข้อมูล");return}
@@ -125,13 +128,15 @@ $("logoutBtn").onclick=()=>signOut(auth);
 onAuthStateChanged(auth,u=>{
   const ok=!!u&&u.uid===ADMIN_UID;
   $("loginBtn").style.display=ok?"none":"inline-block";$("logoutBtn").style.display=ok?"inline-block":"none";
-  $("loadBtn").disabled=!ok;$("summaryBtn").disabled=true;$("moodBtn").disabled=true;
+  $("loadBtn").disabled=!ok;$("testBtn").disabled=!ok;$("summaryBtn").disabled=true;$("moodBtn").disabled=true;
   $("authMsg").textContent=ok?"เข้าสู่ระบบ Admin แล้ว ✓":"ยังไม่ได้เข้าสู่ระบบ";$("authMsg").className=ok?"ok":"muted";
   $("status").textContent=ok?"พร้อมโหลดข้อมูล":"รอ Admin Login";
 });
 
-$("loadBtn").onclick=async()=>{
-  summaryRows=[];moodRows=[];$("summaryBtn").disabled=true;$("moodBtn").disabled=true;$("status").textContent="กำลังโหลดข้อมูล...";
+async function loadMode(mode){
+  summaryRows=[];moodRows=[];currentMode=mode;$("summaryBtn").disabled=true;$("moodBtn").disabled=true;
+  $("modeMsg").textContent=mode==="real"?"โหมดปัจจุบัน: ข้อมูลจริง BA01–BA41":"โหมดปัจจุบัน: ข้อมูลทดสอบ BA99";
+  $("status").textContent="กำลังโหลดข้อมูล...";
   try{
     const ps=await getDocs(collection(db,"participants"));
     let bcount=0,pcount=0,found=0;
@@ -140,13 +145,13 @@ $("loadBtn").onclick=async()=>{
       const pgSnap=await getDoc(doc(db,"participants",pd.id,"progress","current"));
       const prog=pgSnap.exists()?pgSnap.data():{};
       const code=String(root.participantCode||root.participantId||prog.participantCode||prog.participantId||"").trim().toUpperCase();
-      if(!inRange(code)) continue;
+      const include=mode==="real"?inRealRange(code):isTestCode(code);
+      if(!include) continue;
       found++;
       const profile=root.profile||prog.profile||{};
       const bc=prog.baselineCompleted===true;if(bc)bcount++;
       const bd=prog.baselineDrafts||{};
       const pre0=bc?pick(bd?.["0"],["score"]):"", pre1=bc?pick(bd?.["1"],["score"]):"", pre2=bc?pick(bd?.["2"],["score"]):"";
-
       let phq="",st5="",tmhi="",at="",am="",it="",im="",ft="",fm="",sat="";
       const postSet=new Set();
       const posts=await getDocs(collection(db,"participants",pd.id,"postAssessments"));
@@ -159,26 +164,26 @@ $("loadBtn").onclick=async()=>{
         else if(id==="satisfaction"){sat=pick(r,["total","score","totalScore","mean","average"])}
       }
       const pc=postSet.has("phqa")&&postSet.has("st5")&&postSet.has("tmhi");if(pc)pcount++;
-
       summaryRows.push({
         Participant_ID:code,Age:pick(profile,["age"]),Gender:pick(profile,["gender"]),Grade:pick(profile,["grade"]),School:pick(profile,["school"]),
         Program_Start:ts(root.programStartedAt||prog.programStartedAt),Progress_Percent:pick(root,["progressPercent"])||pick(prog,["progressPercent"]),
         Baseline_Complete:bc,PHQA_Pre:pre0,ST5_Pre:pre1,TMHI15_Pre:pre2,
         PHQA_Post:phq,ST5_Post:st5,TMHI15_Post:tmhi,AIM_Total:at,AIM_Mean:am,IAM_Total:it,IAM_Mean:im,FIM_Total:ft,FIM_Mean:fm,Satisfaction:sat,Posttest_Complete:pc
       });
-
       const moods=await getDocs(collection(db,"participants",pd.id,"dailyMoodLogs"));
       for(const md of moods.docs){const m=md.data();moodRows.push({Participant_ID:code,Date:m.dateKey||"",Mood_Score:m.mood??"",Note:m.note??"",Created_At:ts(m.createdAt)})}
     }
-    summaryRows.sort((a,b)=>Number(a.Participant_ID.slice(2))-Number(b.Participant_ID.slice(2)));
+    if(mode==="real") summaryRows.sort((a,b)=>Number(a.Participant_ID.slice(2))-Number(b.Participant_ID.slice(2)));
     moodRows.sort((a,b)=>a.Participant_ID.localeCompare(b.Participant_ID)||String(a.Date).localeCompare(String(b.Date)));
     $("sParticipants").textContent=found;$("sBaseline").textContent=bcount;$("sPost").textContent=pcount;render(summaryRows);
-    $("summaryBtn").disabled=!summaryRows.length;$("moodBtn").disabled=!moodRows.length;$("status").textContent=`โหลดสำเร็จ: ${found} participants, ${moodRows.length} mood logs`;
+    $("summaryBtn").disabled=!summaryRows.length;$("moodBtn").disabled=!moodRows.length;$("status").textContent=`โหลดสำเร็จ: ${found} participants, ${moodRows.length} mood logs`;$("status").className="muted";
   }catch(e){console.error(e);$("status").textContent="โหลดไม่สำเร็จ: "+(e?.message||e);$("status").className="bad"}
-};
+}
+$("loadBtn").onclick=()=>loadMode("real");
+$("testBtn").onclick=()=>loadMode("test");
 
-$("summaryBtn").onclick=()=>downloadCSV(`BA01-BA41_summary_${new Date().toISOString().slice(0,10)}.csv`,summaryRows);
-$("moodBtn").onclick=()=>downloadCSV(`BA01-BA41_mood_logs_${new Date().toISOString().slice(0,10)}.csv`,moodRows);
+$("summaryBtn").onclick=()=>downloadCSV(`${currentMode==="test"?"BA99_TEST":"BA01-BA41"}_summary_${new Date().toISOString().slice(0,10)}.csv`,summaryRows);
+$("moodBtn").onclick=()=>downloadCSV(`${currentMode==="test"?"BA99_TEST":"BA01-BA41"}_mood_logs_${new Date().toISOString().slice(0,10)}.csv`,moodRows);
 </script>
 </body>
 </html>
