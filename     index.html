@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BA Research Data Admin</title>
+<style>
+body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#f6f7fb;margin:0;padding:20px;color:#1f2937}
+.wrap{max-width:1100px;margin:auto}.card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:18px;margin:14px 0}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}input,button{padding:11px 12px;border-radius:10px;font-size:15px}
+input{border:1px solid #d1d5db;min-width:250px}button{border:0;background:#2563eb;color:white;font-weight:700}
+button:disabled{opacity:.4}.muted{color:#6b7280}.ok{color:#047857}.bad{color:#b91c1c}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.stat{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px}.stat b{font-size:28px;display:block}
+.tablebox{overflow:auto;max-height:420px;border:1px solid #e5e7eb;border-radius:12px}table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:8px;border-bottom:1px solid #eee;white-space:nowrap;text-align:left}th{background:#f9fafb;position:sticky;top:0}
+@media(max-width:700px){.stats{grid-template-columns:1fr}.row{display:block}input{width:100%;box-sizing:border-box;margin-bottom:8px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Research Data Admin</h1>
+<p class="muted">อ่านข้อมูลจาก Firebase แบบ read-only และ Export เฉพาะ BA01–BA41</p>
+
+<div class="card">
+<h2>Admin Login</h2>
+<div class="row">
+<div><div>Email</div><input id="email" value="admin@ba-study.local"></div>
+<div><div>Password</div><input id="password" type="password"></div>
+<button id="loginBtn">เข้าสู่ระบบ</button>
+<button id="logoutBtn" style="display:none;background:#4b5563">ออกจากระบบ</button>
+</div>
+<p id="authMsg" class="muted">ยังไม่ได้เข้าสู่ระบบ</p>
+</div>
+
+<div class="card">
+<div class="row">
+<button id="loadBtn" disabled>โหลดข้อมูล BA01–BA41</button>
+<button id="summaryBtn" disabled>Export Summary CSV</button>
+<button id="moodBtn" disabled>Export Mood Logs CSV</button>
+</div>
+<p id="status" class="muted">รอ Admin Login</p>
+</div>
+
+<div class="stats">
+<div class="stat">Participants ที่พบ<b id="sParticipants">0</b></div>
+<div class="stat">Baseline Complete<b id="sBaseline">0</b></div>
+<div class="stat">Post-test Complete<b id="sPost">0</b></div>
+</div>
+
+<div class="card">
+<h2>Preview: Summary</h2>
+<div class="tablebox"><table id="preview"><thead></thead><tbody></tbody></table></div>
+</div>
+
+<div class="card"><b>ความปลอดภัย</b><p class="muted">ไม่มีคำสั่งเขียน แก้ไข หรือลบ Firestore และไม่ Export password, email login, ชื่อ-นามสกุล หรือข้อมูล Authentication</p></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAjb-D5exkH-RsBhEkMORVh5cY3ENPkYmQ",
+  authDomain: "ba-adolescent-pilot.firebaseapp.com",
+  projectId: "ba-adolescent-pilot",
+  storageBucket: "ba-adolescent-pilot.firebasestorage.app",
+  messagingSenderId: "1066423561454",
+  appId: "1:1066423561454:web:9ee44ae9d0e624a38357ff",
+  measurementId: "G-0Y32DT39WL"
+};
+
+const ADMIN_UID = "YfsWHx8yo5bUQ15Roanj6LuzJQW2";
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+await setPersistence(auth, browserSessionPersistence);
+
+const $ = x => document.getElementById(x);
+let summaryRows = [], moodRows = [];
+
+function safeJSON(v){
+  if(v==null) return null;
+  if(typeof v==="object") return v;
+  if(typeof v!=="string") return null;
+  try{return JSON.parse(v)}catch{return null}
+}
+function pick(o, ks){for(const k of ks){if(o && o[k]!==undefined && o[k]!==null && o[k]!=="") return o[k]} return ""}
+function sumFields(o,p,a,b){let s=0,seen=false;for(let i=a;i<=b;i++){const n=Number(o?.[p+i]);if(Number.isFinite(n)){s+=n;seen=true}}return seen?s:""}
+function metricBlock(r,k){
+  if(!r) return {total:"",mean:""};
+  const b=r[k]||r[k.toLowerCase()]||r[k.toUpperCase()];
+  if(typeof b==="number") return {total:b,mean:""};
+  if(!b||typeof b!=="object") return {total:"",mean:""};
+  return {total:pick(b,["total","score","sum","totalScore"]),mean:pick(b,["mean","average","avg","meanScore"])};
+}
+function inRange(code){
+  const m=/^BA(\d{2})$/i.exec(String(code||"").trim());
+  if(!m) return false;
+  const n=Number(m[1]); return n>=1 && n<=41;
+}
+function csvEscape(v){let s=v==null?"":String(v);if(/[",\n\r]/.test(s))s='"'+s.replaceAll('"','""')+'"';return s}
+function downloadCSV(name,rows){
+  if(!rows.length){alert("ยังไม่มีข้อมูล");return}
+  const h=Object.keys(rows[0]);
+  const csv=[h.join(","),...rows.map(r=>h.map(k=>csvEscape(r[k])).join(","))].join("\r\n");
+  const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"});
+  const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function ts(v){if(!v)return"";if(typeof v==="string")return v;if(v.toDate)return v.toDate().toISOString();return String(v)}
+function render(rows){
+  const th=$("preview").querySelector("thead"),tb=$("preview").querySelector("tbody");th.innerHTML="";tb.innerHTML="";
+  if(!rows.length)return;const hs=Object.keys(rows[0]);th.innerHTML="<tr>"+hs.map(h=>`<th>${h}</th>`).join("")+"</tr>";
+  for(const r of rows.slice(0,20)){const tr=document.createElement("tr");for(const h of hs){const td=document.createElement("td");td.textContent=r[h]??"";tr.appendChild(td)}tb.appendChild(tr)}
+}
+
+$("loginBtn").onclick=async()=>{
+  $("authMsg").textContent="กำลังเข้าสู่ระบบ...";
+  try{
+    const c=await signInWithEmailAndPassword(auth,$("email").value.trim(),$("password").value);
+    if(c.user.uid!==ADMIN_UID){await signOut(auth);throw new Error("บัญชีนี้ไม่ใช่ Research Admin")}
+  }catch(e){$("authMsg").textContent="Login ไม่สำเร็จ: "+(e?.message||e);$("authMsg").className="bad"}
+};
+$("logoutBtn").onclick=()=>signOut(auth);
+
+onAuthStateChanged(auth,u=>{
+  const ok=!!u&&u.uid===ADMIN_UID;
+  $("loginBtn").style.display=ok?"none":"inline-block";$("logoutBtn").style.display=ok?"inline-block":"none";
+  $("loadBtn").disabled=!ok;$("summaryBtn").disabled=true;$("moodBtn").disabled=true;
+  $("authMsg").textContent=ok?"เข้าสู่ระบบ Admin แล้ว ✓":"ยังไม่ได้เข้าสู่ระบบ";$("authMsg").className=ok?"ok":"muted";
+  $("status").textContent=ok?"พร้อมโหลดข้อมูล":"รอ Admin Login";
+});
+
+$("loadBtn").onclick=async()=>{
+  summaryRows=[];moodRows=[];$("summaryBtn").disabled=true;$("moodBtn").disabled=true;$("status").textContent="กำลังโหลดข้อมูล...";
+  try{
+    const ps=await getDocs(collection(db,"participants"));
+    let bcount=0,pcount=0,found=0;
+    for(const pd of ps.docs){
+      const root=pd.data();
+      const pgSnap=await getDoc(doc(db,"participants",pd.id,"progress","current"));
+      const prog=pgSnap.exists()?pgSnap.data():{};
+      const code=String(root.participantCode||root.participantId||prog.participantCode||prog.participantId||"").trim().toUpperCase();
+      if(!inRange(code)) continue;
+      found++;
+      const profile=root.profile||prog.profile||{};
+      const bc=prog.baselineCompleted===true;if(bc)bcount++;
+      const bd=prog.baselineDrafts||{};
+      const pre0=bc?pick(bd?.["0"],["score"]):"", pre1=bc?pick(bd?.["1"],["score"]):"", pre2=bc?pick(bd?.["2"],["score"]):"";
+
+      let phq="",st5="",tmhi="",at="",am="",it="",im="",ft="",fm="",sat="";
+      const postSet=new Set();
+      const posts=await getDocs(collection(db,"participants",pd.id,"postAssessments"));
+      for(const ad of posts.docs){
+        const a=ad.data(), id=String(a.assessmentId||"").toLowerCase(), r=safeJSON(a.assessmentResults);
+        if(id==="phqa"){phq=pick(r,["score","total","totalScore"]);if(phq==="")phq=sumFields(a,"posttest_q",1,9);postSet.add("phqa")}
+        else if(id==="st5"){st5=pick(r,["score","total","totalScore"]);if(st5===""){const x=safeJSON(a.assessmentAnswers);if(Array.isArray(x))st5=x.reduce((s,n)=>s+(Number(n)||0),0)}postSet.add("st5")}
+        else if(id==="tmhi"){tmhi=pick(r,["score","total","totalScore"]);if(tmhi===""){const x=safeJSON(a.assessmentAnswers);if(Array.isArray(x))tmhi=x.reduce((s,n)=>s+(Number(n)||0),0)}postSet.add("tmhi")}
+        else if(id==="acceptability"){const A=metricBlock(r,"AIM"),I=metricBlock(r,"IAM"),F=metricBlock(r,"FIM");at=A.total;am=A.mean;it=I.total;im=I.mean;ft=F.total;fm=F.mean}
+        else if(id==="satisfaction"){sat=pick(r,["total","score","totalScore","mean","average"])}
+      }
+      const pc=postSet.has("phqa")&&postSet.has("st5")&&postSet.has("tmhi");if(pc)pcount++;
+
+      summaryRows.push({
+        Participant_ID:code,Age:pick(profile,["age"]),Gender:pick(profile,["gender"]),Grade:pick(profile,["grade"]),School:pick(profile,["school"]),
+        Program_Start:ts(root.programStartedAt||prog.programStartedAt),Progress_Percent:pick(root,["progressPercent"])||pick(prog,["progressPercent"]),
+        Baseline_Complete:bc,PHQA_Pre:pre0,ST5_Pre:pre1,TMHI15_Pre:pre2,
+        PHQA_Post:phq,ST5_Post:st5,TMHI15_Post:tmhi,AIM_Total:at,AIM_Mean:am,IAM_Total:it,IAM_Mean:im,FIM_Total:ft,FIM_Mean:fm,Satisfaction:sat,Posttest_Complete:pc
+      });
+
+      const moods=await getDocs(collection(db,"participants",pd.id,"dailyMoodLogs"));
+      for(const md of moods.docs){const m=md.data();moodRows.push({Participant_ID:code,Date:m.dateKey||"",Mood_Score:m.mood??"",Note:m.note??"",Created_At:ts(m.createdAt)})}
+    }
+    summaryRows.sort((a,b)=>Number(a.Participant_ID.slice(2))-Number(b.Participant_ID.slice(2)));
+    moodRows.sort((a,b)=>a.Participant_ID.localeCompare(b.Participant_ID)||String(a.Date).localeCompare(String(b.Date)));
+    $("sParticipants").textContent=found;$("sBaseline").textContent=bcount;$("sPost").textContent=pcount;render(summaryRows);
+    $("summaryBtn").disabled=!summaryRows.length;$("moodBtn").disabled=!moodRows.length;$("status").textContent=`โหลดสำเร็จ: ${found} participants, ${moodRows.length} mood logs`;
+  }catch(e){console.error(e);$("status").textContent="โหลดไม่สำเร็จ: "+(e?.message||e);$("status").className="bad"}
+};
+
+$("summaryBtn").onclick=()=>downloadCSV(`BA01-BA41_summary_${new Date().toISOString().slice(0,10)}.csv`,summaryRows);
+$("moodBtn").onclick=()=>downloadCSV(`BA01-BA41_mood_logs_${new Date().toISOString().slice(0,10)}.csv`,moodRows);
+</script>
+</body>
+</html>
