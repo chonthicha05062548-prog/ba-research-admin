@@ -75,7 +75,7 @@ th{background:#f9fafb;position:sticky;top:0;z-index:1}
 
 <div class="card">
 <h2>Preview: Summary</h2>
-<p class="muted">แสดง 1 แถวต่อ Participant_ID และแสดงสูงสุด 20 รายการ</p>
+<p class="muted">แสดง 1 แถวต่อ Participant_ID พร้อมคะแนนแบบประเมินก่อน–หลัง AIM/IAM/FIM และความพึงพอใจ • แสดงสูงสุด 20 รายการ</p>
 <div class="tablebox"><table id="preview"><thead></thead><tbody></tbody></table></div>
 </div>
 
@@ -121,7 +121,24 @@ const PREVIEW_COLUMNS = [
   ["Program_Start","Program_Start"],
   ["Consent_Status","ยินยอมเข้าร่วมโครงการ"],
   ["Consent_Date","วันที่ยินยอม"],
+
   ["Baseline_Complete","Baseline Status"],
+  ["PHQA_Pre","PHQ-A Pre"],
+  ["ST5_Pre","ST-5 Pre"],
+  ["TMHI15_Pre","TMHI-15 Pre"],
+
+  ["PHQA_Post","PHQ-A Post"],
+  ["ST5_Post","ST-5 Post"],
+  ["TMHI15_Post","TMHI-15 Post"],
+
+  ["AIM_Total","AIM Total"],
+  ["AIM_Mean","AIM Mean"],
+  ["IAM_Total","IAM Total"],
+  ["IAM_Mean","IAM Mean"],
+  ["FIM_Total","FIM Total"],
+  ["FIM_Mean","FIM Mean"],
+  ["Satisfaction","Satisfaction"],
+
   ["Posttest_Complete","Post-test Status"],
   ["Progress_Percent","Progress"],
   ["Last_Updated","Last Updated"]
