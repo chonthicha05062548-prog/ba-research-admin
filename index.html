@@ -54,7 +54,7 @@ button:disabled{opacity:.4}.muted{color:#6b7280}.ok{color:#047857}.bad{color:#b9
 <div class="card">
 <h2>Preview: Summary</h2>
 <p class="muted" style="font-size:13px;margin-top:-6px">
-PHQ-A ข้อ 9 แสดงแยกทั้งก่อนและหลังโปรแกรมเป็นคะแนน 0–3 และคำตอบ:
+PHQ-A ข้อ 9 แสดงแยกเฉพาะแบบประเมินก่อนเข้าร่วมโปรแกรมเป็นคะแนน 0–3 และคำตอบ:
 0 = ไม่มีเลย, 1 = มีบางวัน, 2 = มีมากกว่า 7 วัน, 3 = มีแทบทุกวัน
 </p>
 <div class="tablebox"><table id="preview"><thead></thead><tbody></tbody></table></div>
@@ -135,6 +135,7 @@ function downloadCSV(name,rows){
 }
 function ts(v){if(!v)return"";if(typeof v==="string")return v;if(v.toDate)return v.toDate().toISOString();return String(v)}
 function phqQ9Label(v){
+  if(v === "" || v === null || v === undefined) return "";
   const n=Number(v);
   if(!Number.isFinite(n)) return "";
   return ({0:"ไม่มีเลย",1:"มีบางวัน",2:"มีมากกว่า 7 วัน",3:"มีแทบทุกวัน"})[n] ?? String(v);
@@ -228,8 +229,6 @@ async function loadMode(mode){
         PHQA_Q9_Pre_Response:phqQ9Label(phqQ9Pre),
         ST5_Pre:pre1,TMHI15_Pre:pre2,
         PHQA_Post:phq,
-        PHQA_Q9_Post_Score:phqQ9Post,
-        PHQA_Q9_Post_Response:phqQ9Label(phqQ9Post),
         ST5_Post:st5,TMHI15_Post:tmhi,
         AIM_Total:at,AIM_Mean:am,IAM_Total:it,IAM_Mean:im,FIM_Total:ft,FIM_Mean:fm,Satisfaction:sat,Posttest_Complete:pc
       });
