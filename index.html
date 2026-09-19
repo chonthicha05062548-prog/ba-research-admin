@@ -3,45 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BA Research Data Admin</title>
+<title>BA Research Data Admin — PHQ-A Q9</title>
 <style>
 body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#f6f7fb;margin:0;padding:20px;color:#1f2937}
-.wrap{max-width:1180px;margin:auto}
-.card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:18px;margin:14px 0}
-.row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
-input,button{padding:11px 12px;border-radius:10px;font-size:15px}
-input{border:1px solid #d1d5db;min-width:250px}
-button{border:0;background:#2563eb;color:white;font-weight:700;cursor:pointer}
-button:disabled{opacity:.4;cursor:not-allowed}
-.muted{color:#6b7280}
-.ok{color:#047857}
-.bad{color:#b91c1c}
-.warn{color:#92400e}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.stat{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px}
-.stat b{font-size:28px;display:block;margin-top:4px}
-.tablebox{overflow:auto;max-height:470px;border:1px solid #e5e7eb;border-radius:12px}
-table{border-collapse:collapse;width:100%;font-size:13px}
-th,td{padding:8px;border-bottom:1px solid #eee;white-space:nowrap;text-align:left}
-th{background:#f9fafb;position:sticky;top:0;z-index:1}
-.badge{display:inline-block;padding:3px 8px;border-radius:999px;font-size:12px;font-weight:700}
-.badge-ok{background:#d1fae5;color:#065f46}
-.badge-bad{background:#fee2e2;color:#991b1b}
-.badge-na{background:#f3f4f6;color:#4b5563}
-.note{background:#eff6ff;border:1px solid #bfdbfe;padding:10px 12px;border-radius:10px}
-@media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:700px){
-  .stats{grid-template-columns:1fr}
-  .row{display:block}
-  input{width:100%;box-sizing:border-box;margin-bottom:8px}
-  button{width:100%;margin-bottom:8px}
-}
+.wrap{max-width:1100px;margin:auto}.card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:18px;margin:14px 0}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}input,button{padding:11px 12px;border-radius:10px;font-size:15px}
+input{border:1px solid #d1d5db;min-width:250px}button{border:0;background:#2563eb;color:white;font-weight:700}
+button:disabled{opacity:.4}.muted{color:#6b7280}.ok{color:#047857}.bad{color:#b91c1c}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.stat{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px}.stat b{font-size:28px;display:block}
+.tablebox{overflow:auto;max-height:420px;border:1px solid #e5e7eb;border-radius:12px}table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:8px;border-bottom:1px solid #eee;white-space:nowrap;text-align:left}th{background:#f9fafb;position:sticky;top:0}
+@media(max-width:1000px){.stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){.stats{grid-template-columns:1fr!important}.row{display:block}input{width:100%;box-sizing:border-box;margin-bottom:8px}}
 </style>
 </head>
 <body>
 <div class="wrap">
 <h1>Research Data Admin</h1>
-<p class="muted">อ่านข้อมูลจาก Firebase แบบ read-only | กลุ่มตัวอย่าง BA01–BA41, BA43, BA46–BA60 | ข้อมูลอื่น = บัญชีอื่น ๆ</p>
+<p class="muted">อ่านข้อมูลจาก Firebase แบบ read-only | กลุ่มตัวอย่าง BA01–BA41, BA43, BA46–BA60, BA66–BA97 | ข้อมูลอื่น = บัญชีอื่น ๆ</p>
 
 <div class="card">
 <h2>Admin Login</h2>
@@ -55,7 +33,6 @@ th{background:#f9fafb;position:sticky;top:0;z-index:1}
 </div>
 
 <div class="card">
-<h2>จัดการข้อมูล (Data Actions)</h2>
 <div class="row">
 <button id="loadBtn" disabled>โหลดข้อมูลกลุ่มตัวอย่าง</button>
 <button id="testBtn" disabled style="background:#7c3aed">โหลดข้อมูลอื่น / บัญชีทดสอบ</button>
@@ -66,23 +43,24 @@ th{background:#f9fafb;position:sticky;top:0;z-index:1}
 <p id="status" class="muted">รอ Admin Login</p>
 </div>
 
-<div class="stats">
+<div class="stats" style="grid-template-columns:repeat(5,1fr)">
 <div class="stat">Participants ที่พบ<b id="sParticipants">0</b></div>
 <div class="stat">Baseline Complete<b id="sBaseline">0</b></div>
 <div class="stat">Post-test Complete<b id="sPost">0</b></div>
 <div class="stat">ยินยอมเข้าร่วมโครงการ<b id="sConsent">0</b></div>
+<div class="stat">Mood Logs<b id="sMood">0</b></div>
 </div>
 
 <div class="card">
 <h2>Preview: Summary</h2>
-<p class="muted">แสดง 1 แถวต่อ Participant_ID พร้อมคะแนนแบบประเมินก่อน–หลัง AIM/IAM/FIM และความพึงพอใจ • แสดงสูงสุด 20 รายการ</p>
+<p class="muted" style="font-size:13px;margin-top:-6px">
+PHQ-A ข้อ 9 แสดงแยกทั้งก่อนและหลังโปรแกรมเป็นคะแนน 0–3 และคำตอบ:
+0 = ไม่มีเลย, 1 = มีบางวัน, 2 = มีมากกว่า 7 วัน, 3 = มีแทบทุกวัน
+</p>
 <div class="tablebox"><table id="preview"><thead></thead><tbody></tbody></table></div>
 </div>
 
-<div class="card">
-<b>ความปลอดภัย</b>
-<p class="muted">หน้านี้อ่านข้อมูลแบบ read-only เท่านั้น ไม่มีคำสั่งเขียน แก้ไข หรือลบ Firestore และไม่ Export password, email login, ชื่อ-นามสกุล หรือข้อมูล Authentication</p>
-</div>
+<div class="card"><b>ความปลอดภัย</b><p class="muted">ไม่มีคำสั่งเขียน แก้ไข หรือลบ Firestore และไม่ Export password, email login, ชื่อ-นามสกุล หรือข้อมูล Authentication • Research Export ทำงานเฉพาะกลุ่มตัวอย่าง</p></div>
 </div>
 
 <script type="module">
@@ -107,42 +85,7 @@ const db = getFirestore(app);
 await setPersistence(auth, browserSessionPersistence);
 
 const $ = x => document.getElementById(x);
-
-let summaryRows = [];
-let moodRows = [];
-let currentMode = "";
-
-const PREVIEW_COLUMNS = [
-  ["Participant_ID","Participant_ID"],
-  ["Age","Age"],
-  ["Gender","Gender"],
-  ["Grade","Grade"],
-  ["School","School"],
-  ["Program_Start","Program_Start"],
-  ["Consent_Status","ยินยอมเข้าร่วมโครงการ"],
-  ["Consent_Date","วันที่ยินยอม"],
-
-  ["Baseline_Complete","Baseline Status"],
-  ["PHQA_Pre","PHQ-A Pre"],
-  ["ST5_Pre","ST-5 Pre"],
-  ["TMHI15_Pre","TMHI-15 Pre"],
-
-  ["PHQA_Post","PHQ-A Post"],
-  ["ST5_Post","ST-5 Post"],
-  ["TMHI15_Post","TMHI-15 Post"],
-
-  ["AIM_Total","AIM Total"],
-  ["AIM_Mean","AIM Mean"],
-  ["IAM_Total","IAM Total"],
-  ["IAM_Mean","IAM Mean"],
-  ["FIM_Total","FIM Total"],
-  ["FIM_Mean","FIM Mean"],
-  ["Satisfaction","Satisfaction"],
-
-  ["Posttest_Complete","Post-test Status"],
-  ["Progress_Percent","Progress"],
-  ["Last_Updated","Last Updated"]
-];
+let summaryRows = [], moodRows = [], currentMode = "";
 
 function safeJSON(v){
   if(v==null) return null;
@@ -150,504 +93,160 @@ function safeJSON(v){
   if(typeof v!=="string") return null;
   try{return JSON.parse(v)}catch{return null}
 }
-
-function pick(o, ks){
-  for(const k of ks){
-    if(o && o[k]!==undefined && o[k]!==null && o[k]!=="") return o[k];
-  }
-  return "";
-}
-
-function hasValue(v){
-  return !(v===undefined || v===null || v==="");
-}
-
-function sumFields(o,p,a,b){
-  let s=0,seen=false;
-  for(let i=a;i<=b;i++){
-    const n=Number(o?.[p+i]);
-    if(Number.isFinite(n)){s+=n;seen=true}
-  }
-  return seen?s:"";
-}
-
+function pick(o, ks){for(const k of ks){if(o && o[k]!==undefined && o[k]!==null && o[k]!=="") return o[k]} return ""}
+function sumFields(o,p,a,b){let s=0,seen=false;for(let i=a;i<=b;i++){const n=Number(o?.[p+i]);if(Number.isFinite(n)){s+=n;seen=true}}return seen?s:""}
 function metricBlock(r,k){
   if(!r) return {total:"",mean:""};
   const b=r[k]||r[k.toLowerCase()]||r[k.toUpperCase()];
   if(typeof b==="number") return {total:b,mean:""};
   if(!b||typeof b!=="object") return {total:"",mean:""};
-  return {
-    total:pick(b,["total","score","sum","totalScore"]),
-    mean:pick(b,["mean","average","avg","meanScore"])
-  };
+  return {total:pick(b,["total","score","sum","totalScore"]),mean:pick(b,["mean","average","avg","meanScore"])};
 }
+const RESEARCH_CODES = new Set([
+  ...Array.from({length:41},(_,i)=>`BA${String(i+1).padStart(2,"0")}`),
+  "BA43",
+  ...Array.from({length:15},(_,i)=>`BA${String(i+46).padStart(2,"0")}`),
+  ...Array.from({length:32},(_,i)=>`BA${String(i+66).padStart(2,"0")}`)
+]);
 
-function normalizeCode(code){
-  return String(code||"").trim().toUpperCase();
+function isResearchCode(code){
+  return RESEARCH_CODES.has(String(code||"").trim().toUpperCase());
 }
-
-function isResearchParticipant(id){
-  const match=/^BA(\d{2})$/.exec(normalizeCode(id));
-  if(!match) return false;
-  const n=Number(match[1]);
-  return (
-    (n>=1 && n<=41) ||
-    n===43 ||
-    (n>=46 && n<=60)
-  );
+function hasExplicitConsent(root, prog){
+  const vals = [
+    root?.consentAccepted,
+    root?.researchConsentAccepted,
+    root?.consentGiven,
+    root?.consent?.accepted,
+    prog?.consentAccepted,
+    prog?.researchConsentAccepted,
+    prog?.consentGiven,
+    prog?.consent?.accepted
+  ];
+  return vals.some(v => v === true || v === "true" || v === 1 || v === "1");
 }
-
-function isOtherParticipant(id){
-  const code=normalizeCode(id);
-  return !!code && !isResearchParticipant(code);
-}
-
-function csvEscape(v){
-  let s=v==null?"":String(v);
-  if(/[",\n\r]/.test(s)) s='"'+s.replaceAll('"','""')+'"';
-  return s;
-}
-
+function csvEscape(v){let s=v==null?"":String(v);if(/[",\n\r]/.test(s))s='"'+s.replaceAll('"','""')+'"';return s}
 function downloadCSV(name,rows){
   if(!rows.length){alert("ยังไม่มีข้อมูล");return}
   const h=Object.keys(rows[0]);
   const csv=[h.join(","),...rows.map(r=>h.map(k=>csvEscape(r[k])).join(","))].join("\r\n");
   const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;
-  a.download=name;
-  a.click();
-  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
-
-function ts(v){
-  if(!v) return "";
-  try{
-    if(typeof v==="string") return v;
-    if(typeof v==="number") return new Date(v).toISOString();
-    if(v.toDate) return v.toDate().toISOString();
-    if(v.seconds!==undefined) return new Date(Number(v.seconds)*1000).toISOString();
-  }catch{}
-  return String(v);
+function ts(v){if(!v)return"";if(typeof v==="string")return v;if(v.toDate)return v.toDate().toISOString();return String(v)}
+function phqQ9Label(v){
+  const n=Number(v);
+  if(!Number.isFinite(n)) return "";
+  return ({0:"ไม่มีเลย",1:"มีบางวัน",2:"มีมากกว่า 7 วัน",3:"มีแทบทุกวัน"})[n] ?? String(v);
 }
-
-function timeMs(v){
-  if(!v) return 0;
-  try{
-    if(typeof v==="number") return v;
-    if(typeof v==="string"){
-      const x=Date.parse(v);
-      return Number.isFinite(x)?x:0;
-    }
-    if(v.toDate) return v.toDate().getTime();
-    if(v.seconds!==undefined) return Number(v.seconds)*1000;
-  }catch{}
-  return 0;
-}
-
-function maxTime(...values){
-  return Math.max(0,...values.map(timeMs));
-}
-
-function parseConsentValue(v){
-  if(v===true || v===1) return "Consented";
-  if(v===false || v===0) return "Not Consented";
-
-  if(v && typeof v==="object"){
-    const nested=pick(v,["status","consentStatus","accepted","consentAccepted","consented","value"]);
-    if(hasValue(nested)) return parseConsentValue(nested);
+function baselinePHQQ9(bd){
+  const d = bd?.["0"] || bd?.phqa || bd?.PHQA || {};
+  const a = d?.answers ?? d?.assessmentAnswers ?? d?.responses ?? {};
+  if(Array.isArray(a)){
+    return a.length>=9 ? a[8] : "";
   }
-
-  const s=String(v??"").trim().toLowerCase();
-  if(!s) return "";
-
-  const yes=[
-    "consented","accepted","yes","true","1","agree","agreed",
-    "ยินยอม","ยินยอมแล้ว","ยอมรับ","ตกลง"
-  ];
-  const no=[
-    "not_consented","not consented","declined","refused","no","false","0",
-    "ยังไม่ยินยอม","ไม่ยินยอม","ปฏิเสธ"
-  ];
-
-  if(yes.includes(s)) return "Consented";
-  if(no.includes(s)) return "Not Consented";
+  if(a && typeof a==="object"){
+    for(const k of ["8","9","q9","Q9","question9","item9"]){
+      if(a[k] !== undefined && a[k] !== null && String(a[k]).trim() !== "") return a[k];
+    }
+  }
+  for(const k of ["q9","Q9","question9","item9","phqa_q9"]){
+    if(d[k] !== undefined && d[k] !== null && String(d[k]).trim() !== "") return d[k];
+  }
   return "";
 }
-
-function getConsentInfo(root,prog,profile){
-  const sources=[root,prog,profile];
-  const statusKeys=["consentAccepted","consentStatus","informedConsent","consent"];
-  const dateKeys=["consentAt","consentDate","consentedAt","acceptedAt"];
-
-  for(const src of sources){
-    if(!src || typeof src!=="object") continue;
-
-    for(const key of statusKeys){
-      if(Object.prototype.hasOwnProperty.call(src,key)){
-        const status=parseConsentValue(src[key]);
-        if(status){
-          let date="";
-          if(src[key] && typeof src[key]==="object"){
-            date=ts(pick(src[key],dateKeys));
-          }
-          if(!date) date=ts(pick(src,dateKeys));
-          return {status,date,explicit:true};
-        }
-      }
-    }
-  }
-
-  return {status:"No Data",date:"",explicit:false};
-}
-
-function newestTimestamp(root,prog,extraTimes=[]){
-  const values=[
-    root?.updatedAt,root?.submittedAt,root?.createdAt,root?.programStartedAt,
-    prog?.updatedAt,prog?.submittedAt,prog?.createdAt,prog?.programStartedAt,
-    ...extraTimes
-  ];
-  const ms=Math.max(0,...values.map(timeMs));
-  return {ms,iso:ms?new Date(ms).toISOString():""};
-}
-
-function previewValue(key,value){
-  if(key==="Consent_Status"){
-    if(value==="Consented") return "ยินยอมแล้ว";
-    if(value==="Not Consented") return "ยังไม่ยินยอม";
-    return "ไม่มีข้อมูล";
-  }
-  if(key==="Baseline_Complete" || key==="Posttest_Complete"){
-    return value===true?"เสร็จแล้ว":"ยังไม่ครบ";
-  }
-  return value??"";
-}
-
 function render(rows){
-  const th=$("preview").querySelector("thead");
-  const tb=$("preview").querySelector("tbody");
-  th.innerHTML="";
-  tb.innerHTML="";
-
-  const cols=PREVIEW_COLUMNS;
-  th.innerHTML="<tr>"+cols.map(([,label])=>`<th>${label}</th>`).join("")+"</tr>";
-
-  for(const r of rows.slice(0,20)){
-    const tr=document.createElement("tr");
-    for(const [key] of cols){
-      const td=document.createElement("td");
-      const shown=previewValue(key,r[key]);
-
-      if(key==="Consent_Status"){
-        const span=document.createElement("span");
-        span.className="badge "+(
-          r[key]==="Consented"?"badge-ok":
-          r[key]==="Not Consented"?"badge-bad":"badge-na"
-        );
-        span.textContent=shown;
-        td.appendChild(span);
-      }else{
-        td.textContent=shown;
-      }
-      tr.appendChild(td);
-    }
-    tb.appendChild(tr);
-  }
-}
-
-function clearLoadedData(){
-  summaryRows=[];
-  moodRows=[];
-  currentMode="";
-  $("sParticipants").textContent="0";
-  $("sBaseline").textContent="0";
-  $("sPost").textContent="0";
-  $("sConsent").textContent="0";
-  $("summaryBtn").disabled=true;
-  $("moodBtn").disabled=true;
-  $("summaryBtn").textContent="Export Research Summary CSV";
-  $("moodBtn").textContent="Export Research Mood Logs CSV";
-  $("modeMsg").textContent="โหมดปัจจุบัน: ยังไม่ได้โหลดข้อมูล";
-  render([]);
-}
-
-function mergeParticipantCandidates(candidates){
-  const sorted=[...candidates].sort((a,b)=>b.updatedMs-a.updatedMs);
-  const out={...sorted[0].row};
-
-  const booleanKeys=["Baseline_Complete","Posttest_Complete"];
-  for(const key of booleanKeys){
-    out[key]=sorted.some(c=>c.row[key]===true);
-  }
-
-  const fillKeys=Object.keys(out).filter(k=>!booleanKeys.includes(k) && !["Consent_Status","Consent_Date","Last_Updated"].includes(k));
-  for(const key of fillKeys){
-    if(!hasValue(out[key])){
-      for(const c of sorted.slice(1)){
-        if(hasValue(c.row[key])){
-          out[key]=c.row[key];
-          break;
-        }
-      }
-    }
-  }
-
-  const consentCandidate=sorted.find(c=>c.consentExplicit);
-  if(consentCandidate){
-    out.Consent_Status=consentCandidate.row.Consent_Status;
-    out.Consent_Date=consentCandidate.row.Consent_Date;
-  }else{
-    out.Consent_Status="No Data";
-    out.Consent_Date="";
-  }
-
-  const newest=Math.max(0,...sorted.map(c=>c.updatedMs));
-  out.Last_Updated=newest?new Date(newest).toISOString():"";
-
-  return out;
-}
-
-function sortByParticipantId(a,b){
-  return String(a.Participant_ID).localeCompare(
-    String(b.Participant_ID),
-    undefined,
-    {numeric:true,sensitivity:"base"}
-  );
+  const th=$("preview").querySelector("thead"),tb=$("preview").querySelector("tbody");th.innerHTML="";tb.innerHTML="";
+  if(!rows.length)return;const hs=Object.keys(rows[0]);th.innerHTML="<tr>"+hs.map(h=>`<th>${h}</th>`).join("")+"</tr>";
+  for(const r of rows.slice(0,20)){const tr=document.createElement("tr");for(const h of hs){const td=document.createElement("td");td.textContent=r[h]??"";tr.appendChild(td)}tb.appendChild(tr)}
 }
 
 $("loginBtn").onclick=async()=>{
   $("authMsg").textContent="กำลังเข้าสู่ระบบ...";
-  $("authMsg").className="muted";
   try{
-    const c=await signInWithEmailAndPassword(
-      auth,
-      $("email").value.trim(),
-      $("password").value
-    );
-    if(c.user.uid!==ADMIN_UID){
-      await signOut(auth);
-      throw new Error("บัญชีนี้ไม่ใช่ Research Admin");
-    }
-  }catch(e){
-    $("authMsg").textContent="Login ไม่สำเร็จ: "+(e?.message||e);
-    $("authMsg").className="bad";
-  }
+    const c=await signInWithEmailAndPassword(auth,$("email").value.trim(),$("password").value);
+    if(c.user.uid!==ADMIN_UID){await signOut(auth);throw new Error("บัญชีนี้ไม่ใช่ Research Admin")}
+  }catch(e){$("authMsg").textContent="Login ไม่สำเร็จ: "+(e?.message||e);$("authMsg").className="bad"}
 };
-
 $("logoutBtn").onclick=()=>signOut(auth);
 
 onAuthStateChanged(auth,u=>{
   const ok=!!u&&u.uid===ADMIN_UID;
-
-  $("loginBtn").style.display=ok?"none":"inline-block";
-  $("logoutBtn").style.display=ok?"inline-block":"none";
-  $("loadBtn").disabled=!ok;
-  $("testBtn").disabled=!ok;
-
-  if(!ok) clearLoadedData();
-
-  $("authMsg").textContent=ok?"เข้าสู่ระบบ Admin แล้ว ✓":"ยังไม่ได้เข้าสู่ระบบ";
-  $("authMsg").className=ok?"ok":"muted";
+  $("loginBtn").style.display=ok?"none":"inline-block";$("logoutBtn").style.display=ok?"inline-block":"none";
+  $("loadBtn").disabled=!ok;$("testBtn").disabled=!ok;$("summaryBtn").disabled=true;$("moodBtn").disabled=true;
+  $("authMsg").textContent=ok?"เข้าสู่ระบบ Admin แล้ว ✓":"ยังไม่ได้เข้าสู่ระบบ";$("authMsg").className=ok?"ok":"muted";
   $("status").textContent=ok?"พร้อมโหลดข้อมูล":"รอ Admin Login";
-  $("status").className="muted";
 });
 
 async function loadMode(mode){
-  summaryRows=[];
-  moodRows=[];
-  currentMode=mode;
-
-  $("summaryBtn").disabled=true;
-  $("moodBtn").disabled=true;
-
-  if(mode==="research"){
-    $("modeMsg").textContent="โหมดปัจจุบัน: ข้อมูลกลุ่มตัวอย่าง | BA01–BA41, BA43, BA46–BA60";
-    $("summaryBtn").textContent="Export Research Summary CSV";
-    $("moodBtn").textContent="Export Research Mood Logs CSV";
-  }else{
-    $("modeMsg").textContent="โหมดปัจจุบัน: ข้อมูลอื่น / บัญชีทดสอบ | ข้อมูลส่วนนี้ไม่นำไปใช้ในการวิเคราะห์งานวิจัย";
-    $("summaryBtn").textContent="Export Other/Test Summary CSV";
-    $("moodBtn").textContent="Export Other/Test Mood Logs CSV";
-  }
-
+  summaryRows=[];moodRows=[];currentMode=mode;$("summaryBtn").disabled=true;$("moodBtn").disabled=true;
+  $("modeMsg").textContent=mode==="research"?"โหมดปัจจุบัน: ข้อมูลกลุ่มตัวอย่าง | BA01–BA41, BA43, BA46–BA60, BA66–BA97":"โหมดปัจจุบัน: ข้อมูลอื่น / บัญชีทดสอบ";
   $("status").textContent="กำลังโหลดข้อมูล...";
-  $("status").className="muted";
-
   try{
     const ps=await getDocs(collection(db,"participants"));
-    const grouped=new Map();
-    const allMoodRows=[];
-
+    let bcount=0,pcount=0,ccount=0,found=0;
     for(const pd of ps.docs){
       const root=pd.data();
       const pgSnap=await getDoc(doc(db,"participants",pd.id,"progress","current"));
       const prog=pgSnap.exists()?pgSnap.data():{};
-      const code=normalizeCode(
-        root.participantCode||
-        root.participantId||
-        prog.participantCode||
-        prog.participantId||
-        ""
-      );
-
-      if(!code) continue;
-
-      const include=mode==="research"
-        ? isResearchParticipant(code)
-        : isOtherParticipant(code);
-
+      const code=String(root.participantCode||root.participantId||prog.participantCode||prog.participantId||"").trim().toUpperCase();
+      const include=mode==="research"?isResearchCode(code):!isResearchCode(code);
       if(!include) continue;
-
+      found++;
       const profile=root.profile||prog.profile||{};
-      const bc=root.baselineCompleted===true || prog.baselineCompleted===true;
-      const bd=prog.baselineDrafts||root.baselineDrafts||{};
-
-      const pre0=bc?pick(bd?.["0"],["score"]):"";
-      const pre1=bc?pick(bd?.["1"],["score"]):"";
-      const pre2=bc?pick(bd?.["2"],["score"]):"";
-
-      let phq="",st5="",tmhi="";
-      let at="",am="",it="",im="",ft="",fm="",sat="";
+      const bc=prog.baselineCompleted===true;if(bc)bcount++; const consent=hasExplicitConsent(root,prog); if(consent) ccount++;
+      const bd=prog.baselineDrafts||{};
+      const pre0=bc?pick(bd?.["0"],["score"]):"", pre1=bc?pick(bd?.["1"],["score"]):"", pre2=bc?pick(bd?.["2"],["score"]):"";
+      const phqQ9Pre = bc ? baselinePHQQ9(bd) : "";
+      let phq="",phqQ9Post="",st5="",tmhi="",at="",am="",it="",im="",ft="",fm="",sat="";
       const postSet=new Set();
-      const postTimes=[];
-
       const posts=await getDocs(collection(db,"participants",pd.id,"postAssessments"));
       for(const ad of posts.docs){
-        const a=ad.data();
-        const id=String(a.assessmentId||"").toLowerCase();
-        const r=safeJSON(a.assessmentResults);
-
-        postTimes.push(a.updatedAt,a.submittedAt,a.createdAt);
-
+        const a=ad.data(), id=String(a.assessmentId||"").toLowerCase(), r=safeJSON(a.assessmentResults);
         if(id==="phqa"){
           phq=pick(r,["score","total","totalScore"]);
           if(phq==="") phq=sumFields(a,"posttest_q",1,9);
-          postSet.add("phqa");
-        }else if(id==="st5"){
-          st5=pick(r,["score","total","totalScore"]);
-          if(st5===""){
-            const x=safeJSON(a.assessmentAnswers);
-            if(Array.isArray(x)) st5=x.reduce((s,n)=>s+(Number(n)||0),0);
+          phqQ9Post = a.posttest_q9 ?? "";
+          if(phqQ9Post===""){
+            const arr=safeJSON(a.assessmentAnswers);
+            if(Array.isArray(arr) && arr.length>=9) phqQ9Post=arr[8];
           }
-          postSet.add("st5");
-        }else if(id==="tmhi"){
-          tmhi=pick(r,["score","total","totalScore"]);
-          if(tmhi===""){
-            const x=safeJSON(a.assessmentAnswers);
-            if(Array.isArray(x)) tmhi=x.reduce((s,n)=>s+(Number(n)||0),0);
-          }
-          postSet.add("tmhi");
-        }else if(id==="acceptability"){
-          const A=metricBlock(r,"AIM");
-          const I=metricBlock(r,"IAM");
-          const F=metricBlock(r,"FIM");
-          at=A.total;am=A.mean;it=I.total;im=I.mean;ft=F.total;fm=F.mean;
-        }else if(id==="satisfaction"){
-          sat=pick(r,["total","score","totalScore","mean","average"]);
+          postSet.add("phqa")
         }
+        else if(id==="st5"){st5=pick(r,["score","total","totalScore"]);if(st5===""){const x=safeJSON(a.assessmentAnswers);if(Array.isArray(x))st5=x.reduce((s,n)=>s+(Number(n)||0),0)}postSet.add("st5")}
+        else if(id==="tmhi"){tmhi=pick(r,["score","total","totalScore"]);if(tmhi===""){const x=safeJSON(a.assessmentAnswers);if(Array.isArray(x))tmhi=x.reduce((s,n)=>s+(Number(n)||0),0)}postSet.add("tmhi")}
+        else if(id==="acceptability"){const A=metricBlock(r,"AIM"),I=metricBlock(r,"IAM"),F=metricBlock(r,"FIM");at=A.total;am=A.mean;it=I.total;im=I.mean;ft=F.total;fm=F.mean}
+        else if(id==="satisfaction"){sat=pick(r,["total","score","totalScore","mean","average"])}
       }
-
-      const pc=postSet.has("phqa")&&postSet.has("st5")&&postSet.has("tmhi");
-      const consent=getConsentInfo(root,prog,profile);
-      const updated=newestTimestamp(root,prog,postTimes);
-
-      const row={
-        Participant_ID:code,
-        Age:pick(profile,["age"]),
-        Gender:pick(profile,["gender"]),
-        Grade:pick(profile,["grade"]),
-        School:pick(profile,["school"]),
-        Program_Start:ts(root.programStartedAt||prog.programStartedAt),
-        Consent_Status:consent.status,
-        Consent_Date:consent.date,
-        Progress_Percent:pick(root,["progressPercent"])||pick(prog,["progressPercent"]),
-        Baseline_Complete:bc,
+      const pc=postSet.has("phqa")&&postSet.has("st5")&&postSet.has("tmhi");if(pc)pcount++;
+      summaryRows.push({
+        Participant_ID:code,Age:pick(profile,["age"]),Gender:pick(profile,["gender"]),Grade:pick(profile,["grade"]),School:pick(profile,["school"]),
+        Program_Start:ts(root.programStartedAt||prog.programStartedAt),Progress_Percent:pick(root,["progressPercent"])||pick(prog,["progressPercent"]),
+        Consent:consent,Baseline_Complete:bc,
         PHQA_Pre:pre0,
-        ST5_Pre:pre1,
-        TMHI15_Pre:pre2,
+        PHQA_Q9_Pre_Score:phqQ9Pre,
+        PHQA_Q9_Pre_Response:phqQ9Label(phqQ9Pre),
+        ST5_Pre:pre1,TMHI15_Pre:pre2,
         PHQA_Post:phq,
-        ST5_Post:st5,
-        TMHI15_Post:tmhi,
-        AIM_Total:at,
-        AIM_Mean:am,
-        IAM_Total:it,
-        IAM_Mean:im,
-        FIM_Total:ft,
-        FIM_Mean:fm,
-        Satisfaction:sat,
-        Posttest_Complete:pc,
-        Last_Updated:updated.iso
-      };
-
-      if(!grouped.has(code)) grouped.set(code,[]);
-      grouped.get(code).push({
-        row,
-        updatedMs:updated.ms,
-        consentExplicit:consent.explicit
+        PHQA_Q9_Post_Score:phqQ9Post,
+        PHQA_Q9_Post_Response:phqQ9Label(phqQ9Post),
+        ST5_Post:st5,TMHI15_Post:tmhi,
+        AIM_Total:at,AIM_Mean:am,IAM_Total:it,IAM_Mean:im,FIM_Total:ft,FIM_Mean:fm,Satisfaction:sat,Posttest_Complete:pc
       });
-
-      const moods=await getDocs(collection(db,"participants",pd.id,"dailyMoodLogs"));
-      for(const md of moods.docs){
-        const m=md.data();
-        allMoodRows.push({
-          Participant_ID:code,
-          Date:m.dateKey||"",
-          Mood_Score:m.mood??"",
-          Note:m.note??"",
-          Created_At:ts(m.createdAt)
-        });
-      }
+      const moods=await getDocs(collection(db,"participants",pd.id,"dailyMoodLogs")); let personMoodCount=0;
+      for(const md of moods.docs){const m=md.data();personMoodCount++;moodRows.push({Participant_ID:code,Date:m.dateKey||"",Mood_Score:m.mood??"",Note:m.note??"",Created_At:ts(m.createdAt)})} summaryRows[summaryRows.length-1].Mood_Log_Count=personMoodCount;
     }
-
-    summaryRows=[...grouped.entries()].map(([,candidates])=>mergeParticipantCandidates(candidates));
-    summaryRows.sort(sortByParticipantId);
-
-    moodRows=allMoodRows.sort(
-      (a,b)=>sortByParticipantId(a,b)||String(a.Date).localeCompare(String(b.Date))
-    );
-
-    const participants=summaryRows.length;
-    const baseline=summaryRows.filter(r=>r.Baseline_Complete===true).length;
-    const post=summaryRows.filter(r=>r.Posttest_Complete===true).length;
-    const consent=summaryRows.filter(r=>r.Consent_Status==="Consented").length;
-
-    $("sParticipants").textContent=participants;
-    $("sBaseline").textContent=baseline;
-    $("sPost").textContent=post;
-    $("sConsent").textContent=consent;
-
-    render(summaryRows);
-
-    $("summaryBtn").disabled=!summaryRows.length;
-    $("moodBtn").disabled=!moodRows.length;
-    $("status").textContent=`โหลดสำเร็จ: ${participants} participants, ${moodRows.length} mood logs`;
-    $("status").className="muted";
-  }catch(e){
-    console.error(e);
-    $("status").textContent="โหลดไม่สำเร็จ: "+(e?.message||e);
-    $("status").className="bad";
-  }
+    if(mode==="research") summaryRows.sort((a,b)=>Number(a.Participant_ID.slice(2))-Number(b.Participant_ID.slice(2)));
+    moodRows.sort((a,b)=>a.Participant_ID.localeCompare(b.Participant_ID)||String(a.Date).localeCompare(String(b.Date)));
+    $("sParticipants").textContent=found;$("sBaseline").textContent=bcount;$("sPost").textContent=pcount;$("sConsent").textContent=ccount;$("sMood").textContent=moodRows.length;render(summaryRows);
+    $("summaryBtn").disabled=(mode!=="research"||!summaryRows.length);$("moodBtn").disabled=(mode!=="research"||!moodRows.length);$("status").textContent=`โหลดสำเร็จ: ${found} participants, ${moodRows.length} mood logs`;$("status").className="muted";
+  }catch(e){console.error(e);$("status").textContent="โหลดไม่สำเร็จ: "+(e?.message||e);$("status").className="bad"}
 }
-
 $("loadBtn").onclick=()=>loadMode("research");
 $("testBtn").onclick=()=>loadMode("other");
 
-$("summaryBtn").onclick=()=>{
-  const prefix=currentMode==="other"?"other_test":"research";
-  downloadCSV(
-    `${prefix}_summary_${new Date().toISOString().slice(0,10)}.csv`,
-    summaryRows
-  );
-};
-
-$("moodBtn").onclick=()=>{
-  const prefix=currentMode==="other"?"other_test":"research";
-  downloadCSV(
-    `${prefix}_mood_logs_${new Date().toISOString().slice(0,10)}.csv`,
-    moodRows
-  );
-};
+$("summaryBtn").onclick=()=>downloadCSV(`BA_Research_Summary_${new Date().toISOString().slice(0,10)}.csv`,summaryRows);
+$("moodBtn").onclick=()=>downloadCSV(`BA_Research_Mood_Logs_${new Date().toISOString().slice(0,10)}.csv`,moodRows);
 </script>
 </body>
 </html>
